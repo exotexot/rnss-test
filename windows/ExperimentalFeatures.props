@@ -24,6 +24,8 @@
     -->
     <UseWinUI3>false</UseWinUI3>
 
+    <WinUI2xVersion>2.8.0-prerelease.210927001</WinUI2xVersion>
+
     <!--
       Changes compilation to assume use of Microsoft.ReactNative NuGet packages
       instead of building the framework from source.
