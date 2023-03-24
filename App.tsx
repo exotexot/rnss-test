@@ -1,43 +1,59 @@
 import React from 'react';
-import {SafeAreaView, Text} from 'react-native';
 
-import {WebView} from 'react-native-webview';
-import Server from '@dr.pogodin/react-native-static-server';
+import {Alert, Platform, SafeAreaView} from 'react-native';
 
 import RNFS from 'react-native-fs';
+import Server, {STATES} from '@dr.pogodin/react-native-static-server';
+import {WebView} from 'react-native-webview';
+import useAsyncEffect from 'use-async-effect';
 
-function App(): JSX.Element {
-  React.useEffect(() => {
-    const server = new Server({
-      // See further in the docs how to statically bundle assets into the App,
-      // alternatively assets to server might be created or downloaded during
-      // the app's runtime.
-      fileDir: RNFS.DocumentDirectoryPath + '\\web\\',
+export default function App() {
+  // Once the server is ready, the origin will be set and opened by WebView.
+  const [origin, setOrigin] = React.useState<string>('');
+  const webView = React.useRef<WebView>(null);
+
+  useAsyncEffect(async () => {
+    const fileDir: string = Platform.select({
+      windows: `${RNFS.DocumentDirectoryPath}\\web`,
+      default: '',
     });
 
-    server
-      .start()
-      .then(origin => {
-        console.log(`Serving at URL ${origin}`);
-      })
-      .catch(e => {
-        console.log('ERROR SERVER', e);
-      });
+    // In our example, `server` is reset to null when the component is unmount,
+    // thus signalling that server init sequence below should be aborted, if it
+    // is still underway.
+    let server: null | Server = new Server({fileDir, stopInBackground: true});
 
-    return () => server.stop();
-  }, []);
+    server?.addStateListener(newState => {
+      console.log(`New server state is "${STATES[newState]}"`);
+    });
+    const res = await server?.start();
 
-  React.useEffect(() => {
-    console.log('HELLO', RNFS.MainBundlePath);
+    if (res && server) {
+      console.log('RES', res, fileDir);
+      setOrigin(res);
+    }
+
+    return async () => {
+      // In our example, here is no need to wait until the shutdown completes.
+      await server?.stop();
+      server = null;
+      setOrigin('');
+    };
   }, []);
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      <Text> Testr </Text>
-
-      <WebView source={{uri: 'https://www.whatsmybrowser.org/'}} useWebView2 />
+      <WebView
+        style={{flex: 1}}
+        cacheMode="LOAD_NO_CACHE"
+        // This way we can receive messages sent by the WebView content.
+        onMessage={event => {
+          const message = event.nativeEvent.data;
+          Alert.alert('Got a message from the WebView content', message);
+        }}
+        ref={webView}
+        source={{uri: origin}}
+      />
     </SafeAreaView>
   );
 }
-
-export default App;
