@@ -11,8 +11,10 @@
     "windows": "react-native run-windows"
   },
   "dependencies": {
+    "@dr.pogodin/react-native-static-server": "^0.7.3",
     "react": "18.2.0",
     "react-native": "0.71.4",
+    "react-native-fs": "github:exotexot/react-native-fs#vinz_multi_merge",
     "react-native-webview": "^11.26.1",
     "react-native-windows": "0.71.4"
   },
