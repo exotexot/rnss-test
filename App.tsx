@@ -16,14 +16,17 @@ import {
   View,
 } from 'react-native';
 
+import { WebView } from 'react-native-webview';
 
 
 function App(): JSX.Element {
 
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{flex: 1}}>
      <Text> Testr </Text>
+
+     <WebView source={{ uri: "https://www.whatsmybrowser.org/" }} useWebView2 />
     </SafeAreaView>
   );
 }
